@@ -4,3 +4,5 @@ To use:
 python quizzinator.py [buzzfeed article HTML] > out.html
 
 Then, open out.html using your favorite browser.
+
+See an example of the output at http://mjmahone.github.io/hpquiz
