@@ -1,4 +1,5 @@
 from sys import argv
+import urllib2
 
 def characterToValueMap(lineArr):
   char_map = {}
@@ -66,19 +67,8 @@ def characterToAnswersMap(lineArr):
   return ans_map, q_to_img_map
 
 
-f = open(argv[1])
-descMap = {}
-char2Q2AnswerMap = {}
-
-currQ = 0
-currAns = 0
-# 0 -> next is question,
-# 1 -> next is question image
-# 2 -> next is answer, w/ personality_index
-# 3 -> next is answer image
-# 4 -> now looking at results
-state = 0
-
+url = argv[1]
+f = urllib2.urlopen(url)
 lineArr = []
 for line in f:
   lineArr.append(line)
@@ -88,9 +78,7 @@ ans_map, q_to_img_map = characterToAnswersMap(lineArr)
 
 print '<html><body>'
 print ('<p>Source for content (pulling a BuzzFeed here): ' +
-'<a href="http://www.buzzfeed.com/marietelling/which-harry-potter-character-are-you">' +
-'Buzzfeed.com' +
-'</a></p>')
+        '<a href="' + url +'">Buzzfeed.com</a></p>')
 for char in char_map:
   print '<h2>'
   print char_map[char] + '<br>'
