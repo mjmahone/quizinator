@@ -18,6 +18,9 @@ def characterToValueMap(lineArr):
     elif next_desc:
       line = line.strip()
       desc = line[17:-2]
+      desc = desc.decode('utf-8')
+      desc = desc.replace(u'\u2018', '&lsquo;').replace(u'\u2019', '&rsquo;')
+      desc = desc.replace(u'\u201C', '&ldquo;').replace(u'\u201D', '&rdquo;')
       desc_map[curr_char] = desc
       next_desc = False
       next_image = True
@@ -34,6 +37,7 @@ def characterToValueMap(lineArr):
 
 def characterToAnswersMap(lineArr):
   ans_map = {}
+  ans_desc_map = {}
   q_to_img_map = {}
   step = -1
   curr_q = -1
@@ -56,15 +60,30 @@ def characterToAnswersMap(lineArr):
       curr_char = int(curr_char_line.strip('"'))
       if not curr_char in ans_map:
         ans_map[curr_char] = {}
+        ans_desc_map[curr_char] = {}
+      ans_map[curr_char][curr_q] = ''
+      ans_desc_map[curr_char][curr_q] = ''
       step = 2
     if step == 2 and 'img src=' in line:
       line = line.strip()
       src_index = line.index('src=')
       img = line[src_index + 5:-3]
       ans_map[curr_char][curr_q] = img
+    if step == 2 and "class='quiz_answer_description" in line:
+      line = line.strip()
+      s_index = line.index("'>")
+      desc = line[s_index+2:-7]
+      ans_desc_map[curr_char][curr_q] = desc
+    if step == 2 and "class='quiz_answer_text" in line:
+      line = line.strip()
+      s_index = line.index("quiz_answer_text'>")
+      add = len("quiz_answer_text'>")
+      desc = line[s_index+add:-7]
+      ans_desc_map[curr_char][curr_q] = desc
+    if step == 2 and "</li>" in line:
       step = 1
 
-  return ans_map, q_to_img_map
+  return ans_map, ans_desc_map, q_to_img_map
 
 
 url = argv[1]
@@ -74,7 +93,7 @@ for line in f:
   lineArr.append(line)
 
 char_map, desc_map, char_to_image = characterToValueMap(lineArr)
-ans_map, q_to_img_map = characterToAnswersMap(lineArr)
+ans_map, ans_desc_map, q_to_img_map = characterToAnswersMap(lineArr)
 
 print '<html><body>'
 print ('<p>Source for content (pulling a BuzzFeed here): ' +
@@ -90,9 +109,11 @@ for char in char_map:
   for q in ans_map[char]:
     q_tag = '<img src="' + q_to_img_map[q] + '"/>'
     ans_tag = '<img src="' + ans_map[char][q] + '"/>'
+    desc_tag = '<span>' + ans_desc_map[char][q] + '</span>'
     print '<p>'
     print q_tag
     print ans_tag
+    print desc_tag
     print '</p>'
 
 print '</body></html>'
